@@ -1,5 +1,18 @@
 // 导入node-fetch以支持fetch功能
 const fetch = require('node-fetch');
+const fs = require('fs');
+const path = require('path');
+
+// 读取配置文件
+let config;
+try {
+  const configPath = path.join(__dirname, 'config.json');
+  config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+} catch (error) {
+  console.error('读取配置文件失败:', error.message);
+  console.error('请确保config.json文件存在并包含有效的API密钥');
+  process.exit(1);
+}
 
 // 简单的Zod验证实现
 const z = {
@@ -51,7 +64,11 @@ const searchWeb = tool({
       ),
   }),
   execute: async ({ query }) => {
-    const API_KEY = 'xai-0E7chkGZCptPHXZq4eqQVwq0P19r14Ng8tXUUllMdiuQGKYkM17ibjxW66rkW07uCziDi2Y1asYzE5cA';
+    // 从配置文件读取API密钥
+    const API_KEY = config.xai.api_key;
+    if (!API_KEY || API_KEY === 'your-api-key-here') {
+      throw new Error('请在config.json文件中设置有效的XAI API密钥');
+    }
     
     // 添加随机延迟以避免频率限制
     const delay = Math.random() * 2000 + 1000; // 1-3秒随机延迟
@@ -85,7 +102,7 @@ const searchWeb = tool({
             "content": query
           }
         ],
-        "model": "grok-beta",
+        "model": config.xai.model,
         "temperature": 0.7,
         "max_tokens": 1000,
         "stream": false
@@ -94,10 +111,10 @@ const searchWeb = tool({
     
     try {
       console.log('发送请求到 X.AI API...');
-      console.log('请求URL:', 'https://api.x.ai/v1/chat/completions');
+      console.log('请求URL:', config.xai.base_url);
       console.log('请求头:', JSON.stringify(options.headers, null, 2));
       
-      const response = await fetch('https://api.x.ai/v1/chat/completions', options);
+      const response = await fetch(config.xai.base_url, options);
       
       console.log('响应状态:', response.status, response.statusText);
       console.log('响应头:', Object.fromEntries(response.headers.entries()));
