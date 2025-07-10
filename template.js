@@ -42,7 +42,8 @@ Critical Reminders:
               {"type": "web"},
               {"type": "x"},
               {"type": "news"}
-            ]
+            ],
+            "return_citations": true
           },
           "model": "grok-3-latest"
         }),
